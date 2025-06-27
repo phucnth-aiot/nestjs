@@ -9,6 +9,9 @@ export class Department {
   @Column({ type: 'nvarchar', length: 100 })
   DeptName: string;
 
+  @Column({ type: 'int', nullable: tru e })
+  LocationID: number;
+
   //Một phòng ban có thể có nhiều nhân viên
   @OneToMany(() => Employee, (employee) => employee.department)
   employees: Employee[];
