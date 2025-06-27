@@ -1,4 +1,11 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { Department } from '../department/department.entity';
 import { Salary } from '../salary/salary.entity';
 
@@ -25,10 +32,10 @@ export class Employee {
   @Column({ type: 'float', nullable: true })
   Salary: number;
 
-  @ManyToOne(() => Department, (department) => department.employees)
+  @ManyToOne(() => Department, department => department.employees)
   @JoinColumn({ name: 'DeptID' })
   department: Department;
 
-  @OneToMany(() => Salary, (salary) => salary.employee)
+  @OneToMany(() => Salary, salary => salary.employee)
   salaries: Salary[];
 }

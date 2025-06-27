@@ -4,15 +4,15 @@ import { Employee } from '../employee/employee.entity';
 @Entity()
 export class Department {
   @PrimaryColumn({ type: 'char', length: 5 })
-  DeptID: string;
+  DeptID: string | undefined;
 
   @Column({ type: 'nvarchar', length: 100 })
-  DeptName: string;
+  DeptName: string | undefined;
 
-  @Column({ type: 'int', nullable: tru e })
-  LocationID: number;
+  @Column({ type: 'int', nullable: true })
+  LocationID: number | undefined;
 
   //Một phòng ban có thể có nhiều nhân viên
   @OneToMany(() => Employee, (employee) => employee.department)
-  employees: Employee[];
+  employees: Employee[] | undefined;
 }

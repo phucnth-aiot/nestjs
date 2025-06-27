@@ -7,7 +7,7 @@ import { Employee } from './employee.entity';
 export class EmployeeService {
   constructor(
     @InjectRepository(Employee)
-    private employeeRepository: Repository<Employee>,
+    private employeeRepository: Repository<Employee>
   ) {}
 
   // Lấy tất cả nhân viên với thông tin phòng ban và lương
@@ -29,7 +29,7 @@ export class EmployeeService {
 
     const employees = await queryBuilder.getMany();
 
-    return employees.map((employee) => this.formatEmployeeResponse(employee));
+    return employees.map(employee => this.formatEmployeeResponse(employee));
   }
 
   // Lấy thông tin chi tiết một nhân viên
@@ -62,7 +62,7 @@ export class EmployeeService {
   async getEmployeesByDepartment(
     deptId: string,
     month?: number,
-    year?: number,
+    year?: number
   ) {
     const queryBuilder = this.employeeRepository
       .createQueryBuilder('employee')
@@ -81,7 +81,7 @@ export class EmployeeService {
 
     const employees = await queryBuilder.getMany();
 
-    return employees.map((employee) => this.formatEmployeeResponse(employee));
+    return employees.map(employee => this.formatEmployeeResponse(employee));
   }
 
   // Format response data
@@ -132,7 +132,7 @@ export class EmployeeService {
           }
         : null,
       allSalaries:
-        employee.salaries?.map((salary) => ({
+        employee.salaries?.map(salary => ({
           salaryId: salary.SalaryID,
           month: salary.Month,
           year: salary.Year,
