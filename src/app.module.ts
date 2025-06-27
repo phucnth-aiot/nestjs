@@ -1,29 +1,20 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { getDatabaseConfig, appConfig } from './config';
-
-// Import modules
-import { EmployeeModule } from './modules/employee/employee.module';
-import { DepartmentModule } from './modules/department/department.module';
-import { SalaryModule } from './modules/salary/salary.module';
+import { getDatabaseConfig } from './config/database.config';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [appConfig],
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         ...getDatabaseConfig(configService),
-        synchronize: false, // Tắt cái này khi có db các bảng rồi
       }),
-      inject: [ConfigService],
     }),
-    EmployeeModule,
-    DepartmentModule,
-    SalaryModule,
+    UserModule,
   ],
 })
 export class AppModule {}
