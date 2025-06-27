@@ -13,6 +13,6 @@ export class Department {
   LocationID: number | undefined;
 
   //Một phòng ban có thể có nhiều nhân viên
-  @OneToMany(() => Employee, (employee) => employee.department)
+  @OneToMany(() => Employee, employee => employee.department)
   employees: Employee[] | undefined;
 }

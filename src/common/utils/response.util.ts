@@ -15,7 +15,7 @@ export class ResponseUtil {
   static successWithPagination<T>(
     data: T[],
     meta: PaginationMeta,
-    message?: string,
+    message?: string
   ): ApiResponse<T[]> {
     return {
       success: true,

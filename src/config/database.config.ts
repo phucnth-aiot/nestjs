@@ -2,7 +2,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 
 export const getDatabaseConfig = (
-  configService: ConfigService,
+  configService: ConfigService
 ): TypeOrmModuleOptions => {
   return {
     type: 'mysql', // <- Sửa lại
