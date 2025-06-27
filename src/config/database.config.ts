@@ -15,6 +15,6 @@ export const getDatabaseConfig = (
     synchronize:
       (configService.get<string>('NODE_ENV') || 'development') !== 'production',
     logging:
-      (configService.get<string>('NODE_ENV') || 'development') == 'development',
+      (configService.get<string>('NODE_ENV') || 'development') == 'development'
   };
 };
