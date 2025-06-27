@@ -7,10 +7,7 @@ export class EmployeeController {
 
   // Lấy tất cả nhân viên với thông tin phòng ban và lương
   @Get()
-  async getAllEmployeesWithDetails(
-    @Query('month') month?: number,
-    @Query('year') year?: number
-  ) {
+  async getAllEmployeesWithDetails(@Query('month') month?: number, @Query('year') year?: number) {
     return this.employeeService.getAllEmployeesWithDetails(month, year);
   }
 
@@ -19,7 +16,7 @@ export class EmployeeController {
   async getEmployeeWithDetails(
     @Param('id') id: string,
     @Query('month') month?: number,
-    @Query('year') year?: number
+    @Query('year') year?: number,
   ) {
     return this.employeeService.getEmployeeWithDetails(id, month, year);
   }
@@ -29,7 +26,7 @@ export class EmployeeController {
   async getEmployeesByDepartment(
     @Param('deptId') deptId: string,
     @Query('month') month?: number,
-    @Query('year') year?: number
+    @Query('year') year?: number,
   ) {
     return this.employeeService.getEmployeesByDepartment(deptId, month, year);
   }

@@ -8,7 +8,7 @@ import { Salary } from './salary.entity';
 export class SalaryService {
   constructor(
     @InjectRepository(Salary)
-    private readonly salaryRepository: Repository<Salary>
+    private readonly salaryRepository: Repository<Salary>,
   ) {}
 
   findAll(): Promise<Salary[]> {

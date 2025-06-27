@@ -7,7 +7,7 @@ import { CreateDepartmentDto } from './dto/create-department.dto';
 export class DepartmentService {
   constructor(
     @InjectRepository(Department)
-    private readonly departmentRepository: Repository<Department>
+    private readonly departmentRepository: Repository<Department>,
   ) {}
 
   findAll(): Promise<Department[]> {

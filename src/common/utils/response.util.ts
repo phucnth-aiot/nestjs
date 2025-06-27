@@ -1,7 +1,4 @@
-import {
-  ApiResponse,
-  PaginationMeta,
-} from '../../shared/interfaces/api-response.interface';
+import { ApiResponse, PaginationMeta } from '../../shared/interfaces/api-response.interface';
 
 export class ResponseUtil {
   static success<T>(data: T, message?: string): ApiResponse<T> {
@@ -15,7 +12,7 @@ export class ResponseUtil {
   static successWithPagination<T>(
     data: T[],
     meta: PaginationMeta,
-    message?: string
+    message?: string,
   ): ApiResponse<T[]> {
     return {
       success: true,
