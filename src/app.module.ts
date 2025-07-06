@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
-import { getDatabaseConfig } from './config/database.config';
+import { typeOrmConfig } from './config/database.config';
 import { UserModule } from './domain/users/users.module';
 import { AuthModule } from './domain/auth/auth.module';
 import { TaskModule } from './domain/task/task.module';
@@ -15,7 +15,7 @@ import { TaskModule } from './domain/task/task.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        ...getDatabaseConfig(configService),
+        ...typeOrmConfig(configService),
       }),
     }),
 
