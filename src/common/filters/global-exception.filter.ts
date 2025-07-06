@@ -1,4 +1,4 @@
-import { Catch, ExceptionFilter, ArgumentsHost, HttpException, HttpStatus } from "@nestjs/common"; 
+import { Catch, ExceptionFilter, ArgumentsHost } from "@nestjs/common"; 
 import { randomUUID, } from "crypto";
 
 @Catch()
