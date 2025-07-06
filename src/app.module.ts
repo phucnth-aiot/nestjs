@@ -10,34 +10,13 @@ import { TaskModule } from './domain/task/task.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        // ✅ Tự validate bằng code thường
-        const required = (key: string) => {
-          const value = configService.get<string>(key);
-          if (value === undefined || value === null || value === '') {
-            throw new Error(`Missing required environment variable: ${key}`);
-          }
-          return value;
-        };
-        return {
-          type: 'mysql',
-          host: required('DB_HOST'),
-          port: parseInt(configService.get<string>('DB_PORT') || '3306'),
-          username: required('DB_USERNAME'),
-          password: configService.get<string>('DB_PASSWORD') || '',
-          database: required('DB_NAME'),
-          synchronize: configService.get<string>('NODE_ENV') !== 'production',
-          logging: configService.get<string>('NODE_ENV') === 'development',
-          entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        };
-      },
+      useFactory: (configService: ConfigService) => ({
+        ...getDatabaseConfig(configService),
+      }),
     }),
 
      CacheModule.registerAsync({
@@ -54,7 +33,5 @@ import { TaskModule } from './domain/task/task.module';
     AuthModule,
     TaskModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
