@@ -1,5 +1,3 @@
-// auth.service.ts
-
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -50,9 +48,7 @@ export class AuthService {
       ...dto,
       password: hashedPassword,
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, refreshToken, ...result } = user;
-    return result;
+    return user;
   }
 
   async refreshToken(userid: string, refreshToken: string) {

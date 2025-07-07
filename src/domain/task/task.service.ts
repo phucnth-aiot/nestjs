@@ -1,14 +1,13 @@
-import { BadRequestException, Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { FilterTaskDto } from '../../common/dto/filter-task.dto';
-import { extname } from 'path';
-import { promises as fs } from 'fs';
 import { Express } from 'express';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { logger } from 'src/config/logger';
+import { FileService } from 'src/common/service/uploadFile';
 
 @Injectable()
 export class TasksService {
@@ -19,6 +18,8 @@ export class TasksService {
 
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
+
+    private readonly fileService: FileService,
   ) {}
 
   async create(createTaskDto: CreateTaskDto): Promise<Task> {
@@ -93,40 +94,20 @@ export class TasksService {
   }
 
   async uploadFile(taskId: number, file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('No file uploaded!');
-    }
-
-    if (!file.buffer) {
-      throw new BadRequestException('File buffer is empty!');
-    }
-
-    const allowedExt = ['.jpg', '.jpeg', '.png', '.pdf'];
-    const fileExt = extname(file.originalname).toLowerCase();
-
-    if (!allowedExt.includes(fileExt)) {
-      throw new BadRequestException('Invalid file type!');
-    }
-    //  giới hạn cái file lại
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      throw new BadRequestException('File size exceeds 5MB!');
-    }
-    // tên của ảnh lưu vô db
-    const newName = `task-${taskId}-${Date.now()}${fileExt}`;
-
-    await fs.mkdir('./uploads', { recursive: true });
-    await fs.writeFile(`./uploads/${newName}`, file.buffer);
+    const fileName = await this.fileService.uploadFile('task', taskId, file);
 
     const task = await this.taskRepository.findOne({ where: { id: taskId } });
-    if (!task) throw new NotFoundException(`Task id ${taskId} not found`);
+    if (!task) {
+      throw new NotFoundException(`taskId: ${taskId} not found`);
+    }
 
-    task.fileUrl = newName;
+    task.fileUrl = fileName;
+
     await this.taskRepository.save(task);
 
     return {
       message: 'Upload successful!',
-      filename: newName,
+      filename: fileName,
       originalName: file.originalname,
       size: file.size,
       mimetype: file.mimetype,

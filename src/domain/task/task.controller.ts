@@ -17,7 +17,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TaskResponseDto } from './dto/TaskResponseDto';
 import { ErrorResponseDto } from './dto/ErrorRsponseDto';
+import { RoleGuard } from 'src/common/guards/roles.guard';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
+import { Role } from 'src/common/enums/role.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
+@UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('task')
 export class TaskController {
   constructor(private readonly TasksService: TasksService) {}
@@ -27,6 +33,7 @@ export class TaskController {
   @ApiResponse({ status: 201, type: TaskResponseDto })
   @ApiResponse({ status: 400, type: ErrorResponseDto })
   @Post()
+  @Roles(Role.Admin)
   create(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
     return this.TasksService.create(createTaskDto);
   }

@@ -9,11 +9,9 @@ export const multerConfig = {
       cb(null, `${uniqueSuffix}-${file.originalname}`);
     },
   }),
-  fileFilter: (req, file, cb) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  fileFilter: (req, file: Express.Multer.File, cb) => {
     if (!file.mimetype.match(/\/(jpg|jpeg|png|pdf)$/)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return cb(new BadRequestException('Invalid file type'), false);
+      return new BadRequestException('Invalid file type');
     }
     cb(null, true);
   },

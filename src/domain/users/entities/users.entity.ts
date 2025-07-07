@@ -1,4 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+import { Role } from 'src/common/enums/role.enum';
 @Entity({ name: 'User' })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -17,9 +19,12 @@ export class UserEntity {
   password: string;
 
   @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.User,
     nullable: true,
   })
-  role: string;
+  role: Role;
 
   @Column({ nullable: true })
   avatarUrl?: string;
