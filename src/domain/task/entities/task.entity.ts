@@ -30,5 +30,5 @@ export class Task {
   updatedAt: Date;
 
   @Column({ nullable: true })
-  fileUrl?: string; // ✅ THÊM FIELD NÀY
+  fileUrl?: string;
 }

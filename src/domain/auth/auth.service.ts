@@ -1,10 +1,6 @@
 // auth.service.ts
 
-import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../users/users.service';
@@ -19,13 +15,14 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(loginDto: LoginDto): Promise<UserResponseDto>{
+  async validateUser(loginDto: LoginDto): Promise<UserResponseDto> {
     const user = await this.userService.findOne(loginDto.phone);
     if (!user) throw new UnauthorizedException('user not found');
 
     const isMatch = await bcrypt.compare(loginDto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('inlavid password');
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken, ...result } = user;
     return result as UserResponseDto;
   }
@@ -46,14 +43,14 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const existing = await this.userService.findOne(dto.phone);
-    if (existing)
-      throw new ConflictException('Phone number already registered');
+    if (existing) throw new ConflictException('Phone number already registered');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = await this.userService.create({
       ...dto,
       password: hashedPassword,
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken, ...result } = user;
     return result;
   }

@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  Inject
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Task } from './entities/task.entity';
@@ -13,7 +8,7 @@ import { extname } from 'path';
 import { promises as fs } from 'fs';
 import { Express } from 'express';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { logger } from 'src/config/logger'; 
+import { logger } from 'src/config/logger';
 
 @Injectable()
 export class TasksService {
@@ -24,7 +19,6 @@ export class TasksService {
 
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-
   ) {}
 
   async create(createTaskDto: CreateTaskDto): Promise<Task> {
@@ -41,8 +35,10 @@ export class TasksService {
       return savedTask;
     } catch (error) {
       logger.error('Failed to create task', {
-        error: error.message,
-        stack: error.stack,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        error: error.message as string,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        stack: error.stack as string,
         payload: createTaskDto,
       });
       throw error;
@@ -136,29 +132,4 @@ export class TasksService {
       mimetype: file.mimetype,
     };
   }
-
-//   async uploadFile(file: Express.Multer.File): Promise<string> {
-//   // Validate file existence and size
-//   const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-//   if (!file || file.size > maxSize) {
-//     throw new BadRequestException('Invalid file');
-//   }
-  
-//   // Create unique path & move file to permanent storage
-//   const uniquePath = `${this.storagePath}/${uuid()}-${file.originalname}`;
-//   await fs.copyFile(file.path, uniquePath);
-//   await unlink(file.path); // Clean up temp file
-  
-//   return uniquePath;
-// }
-
-
 }
-function uuid() {
-  throw new Error('Function not implemented.');
-}
-
-function unlink(path: string) {
-  throw new Error('Function not implemented.');
-}
-

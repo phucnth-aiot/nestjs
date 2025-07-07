@@ -14,24 +14,24 @@ import { TaskModule } from './domain/task/task.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        ...typeOrmConfig(configService),
+      useFactory: () => ({
+        ...typeOrmConfig(),
       }),
     }),
 
-     CacheModule.registerAsync({
+    CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({
         store: await redisStore({
           host: 'localhost',
           port: 6379,
         }),
-        ttl: 1800, // thời gian cache mặc định: 60 giây
+        ttl: 1800, // thời gian cache mặc định:30 p
       }),
     }),
     UserModule,
     AuthModule,
-    TaskModule
+    TaskModule,
   ],
 })
 export class AppModule {}

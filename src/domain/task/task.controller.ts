@@ -17,7 +17,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TaskResponseDto } from './dto/TaskResponseDto';
 import { ErrorResponseDto } from './dto/ErrorRsponseDto';
-import { multerConfig } from 'src/config/mulerConfig';
 
 @Controller('task')
 export class TaskController {
@@ -58,13 +57,13 @@ export class TaskController {
   ) {
     return this.TasksService.uploadFile(id, file);
   }
-//   @Post(':id/upload')
-//   @UseInterceptors(FileInterceptor('file', multerConfig))
-//   async uploadFile(
-//   @Param('id') id: string,
-//   @UploadedFile() file: Express.Multer.File
-// ) {
-//   const filepath = await this.TasksService.uploadFile(file);
-//   return this.TasksService.updateTaskFile(id, filepath);    
-// }
+  //   @Post(':id/upload')
+  //   @UseInterceptors(FileInterceptor('file', multerConfig))
+  //   async uploadFile(
+  //   @Param('id') id: string,
+  //   @UploadedFile() file: Express.Multer.File
+  // ) {
+  //   const filepath = await this.TasksService.uploadFile(file);
+  //   return this.TasksService.updateTaskFile(id, filepath);
+  // }
 }

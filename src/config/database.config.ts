@@ -1,11 +1,10 @@
 import 'reflect-metadata';
 import * as dotenv from 'dotenv';
-import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 dotenv.config();
 
-export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => ({
+export const typeOrmConfig = (): TypeOrmModuleOptions => ({
   type: 'mysql',
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT ?? '3306', 10),
@@ -14,6 +13,4 @@ export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => ({
   database: process.env.DB_DATABASE,
   entities: [__dirname + '/../**/*.entity.{ts,js}'],
   synchronize: false,
-  
 });
-
