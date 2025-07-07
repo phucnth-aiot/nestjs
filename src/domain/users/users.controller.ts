@@ -3,8 +3,10 @@ import { UserService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dtos';
 import { UserUpdateDto } from './dtos/user-update.dtos';
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
+import { RoleGuard } from 'src/common/guards/roles.guard';
 // import { UserDeleteDto } from './dtos/user-delete.dtos';
 
+@UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('users')
 export class UserController {
   constructor(private readonly UserService: UserService) {}
@@ -13,7 +15,6 @@ export class UserController {
   findall() {
     return this.UserService.findAll();
   }
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findById(@Param(':id') id: string) {
     return this.UserService.findById(id);

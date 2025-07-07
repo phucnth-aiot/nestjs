@@ -44,11 +44,11 @@ export class AuthService {
     if (existing) throw new ConflictException('Phone number already registered');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = await this.userService.create({
+    await this.userService.create({
       ...dto,
       password: hashedPassword,
     });
-    return user;
+    return { message: 'Regiter succesfully' };
   }
 
   async refreshToken(userid: string, refreshToken: string) {

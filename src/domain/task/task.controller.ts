@@ -49,6 +49,7 @@ export class TaskController {
   @ApiResponse({ status: 201, type: TaskResponseDto })
   @ApiResponse({ status: 400, type: ErrorResponseDto })
   @Get(':id')
+  @Roles(Role.Admin)
   findOne(@Param('id', ParseIntPipe) id: number): Promise<Task> {
     return this.TasksService.findOne(id);
   }
@@ -57,6 +58,7 @@ export class TaskController {
   @ApiResponse({ status: 201, type: TaskResponseDto })
   @ApiResponse({ status: 400, type: ErrorResponseDto })
   @Post(':id/upload')
+  @Roles(Role.Admin)
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Param('id', ParseIntPipe) id: number,
