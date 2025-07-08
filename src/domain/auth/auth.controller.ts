@@ -2,8 +2,6 @@ import { Controller, Post, Body, UseGuards, Request, Param } from '@nestjs/commo
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
-import { LocalAuthGuard } from './jwt-auth/jwt-authlocal.guard';
-import { refreshTokenDto } from './dto/refresh-token.dto';
 import { CreateUserDto } from '../users/dtos/create-user.dtos';
 
 @Controller('auth')
@@ -15,7 +13,6 @@ export class AuthController {
     const user = await this.authService.register(dto);
     return { message: 'User registered successfully', user };
   }
-  @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(loginDto);
@@ -24,8 +21,8 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('refresh/:id')
-  async refresh(@Param('id') id: string, @Body() body: refreshTokenDto) {
-    return await this.authService.refreshToken(id, body.refreshToken);
+  async refresh(@Param('id') id: string, @Body() refreshToken: string) {
+    return await this.authService.refreshToken(id, refreshToken);
   }
 
   @UseGuards(JwtAuthGuard)

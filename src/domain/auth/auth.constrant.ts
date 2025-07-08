@@ -1,4 +1,4 @@
 export const jwtConstants = {
-  accessSecret: 'mbnxvmznxbkjfhgfmbdcvxmnbkghdflghbvbvvcxmadfhgl',
-  refreshSecret: 'nxbvmn,xiytebfd,mgvbzdkjfhggdf3413.f4gh54sf',
+  // accessSecret: 'mbnxvmznxbkjfhgfmbdcvxmnbkghdflghbvbvvcxmadfhgl',
+  accessSecret: process.env.JWT_SECRET as string,
 };
