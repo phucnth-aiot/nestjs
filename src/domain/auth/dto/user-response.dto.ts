@@ -12,16 +12,5 @@ export class UserResponseDto {
 
   @IsNotEmpty()
   @IsString()
-  phone: string;
-
-  @IsNotEmpty()
-  @IsString()
-  email: string;
-
-  @IsNotEmpty()
-  @IsString()
   role: string;
-
-  @IsString()
-  avatarUrl?: string;
 }

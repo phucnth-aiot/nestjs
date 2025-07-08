@@ -1,10 +1,15 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../users/users.service';
-import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { CreateUserDto } from '../users/dtos/create-user.dtos';
 
 @Injectable()
 export class AuthService {
@@ -20,9 +25,7 @@ export class AuthService {
     const isMatch = await bcrypt.compare(loginDto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('inlavid password');
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, refreshToken, ...result } = user;
-    return result as UserResponseDto;
+    return user as UserResponseDto;
   }
 
   async login(user: UserResponseDto) {
@@ -39,7 +42,7 @@ export class AuthService {
     return { access_token, refresh_token };
   }
 
-  async register(dto: RegisterDto) {
+  async register(dto: CreateUserDto) {
     const existing = await this.userService.findOne(dto.phone);
     if (existing) throw new ConflictException('Phone number already registered');
 
@@ -64,5 +67,16 @@ export class AuthService {
     };
     const newAccessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     return { access_token: newAccessToken };
+  }
+
+  async logout(userId: string): Promise<{ message: string }> {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.refreshToken = '';
+    await this.userService.create(user);
+
+    return { message: 'Logout successful' };
   }
 }

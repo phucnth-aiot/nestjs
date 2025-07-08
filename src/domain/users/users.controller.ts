@@ -31,7 +31,7 @@ export class UserController {
   }
 
   @Delete('userid')
-  delete(@Param('userid') @Body() userid: string) {
+  delete(@Param('userid') userid: string) {
     return this.UserService.delete(userid);
   }
 }

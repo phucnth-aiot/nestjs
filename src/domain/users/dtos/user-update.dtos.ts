@@ -1,17 +1,14 @@
-import { IsOptional, IsString, IsEmail, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsString, IsEmail, IsEnum } from 'class-validator';
+import { Role } from 'src/common/enums/role.enum';
 
 export class UserUpdateDto {
-  @IsNotEmpty()
-  @IsString()
-  userid:string
-
   @IsOptional()
   @IsString()
   username?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  phone: string;
+  phone?: string;
 
   @IsOptional()
   @IsEmail()
@@ -20,4 +17,12 @@ export class UserUpdateDto {
   @IsOptional()
   @IsString()
   avatarUrl?: string;
+
+  @IsOptional()
+  @IsEnum(Role)
+  role?: Role;
+
+  @IsOptional()
+  @IsString()
+  refreshToken: string;
 }

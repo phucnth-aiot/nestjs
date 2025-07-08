@@ -35,11 +35,15 @@ export class TasksService {
 
       return savedTask;
     } catch (error) {
+      let errorMessage = 'Unknown error';
+      let errorStack = 'No stack trace';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        errorStack = error.stack ?? 'No stack trace';
+      }
       logger.error('Failed to create task', {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        error: error.message as string,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        stack: error.stack as string,
+        error: errorMessage,
+        stack: errorStack,
         payload: createTaskDto,
       });
       throw error;

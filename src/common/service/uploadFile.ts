@@ -5,7 +5,7 @@ import { Express } from 'express';
 
 @Injectable()
 export class FileService {
-  private readonly allowerExt: string[] = ['.jpg', '.jpeg', '.png', '.pdf'];
+  private readonly allowerExt: string[] = ['.jpg', '.jpeg', '.pdf'];
   private readonly maxSize = 5 * 1024 * 1024;
   private readonly uploadPath = './uploads';
 
