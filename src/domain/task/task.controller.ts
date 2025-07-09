@@ -19,7 +19,7 @@ import { TaskResponseDto } from './dto/TaskResponseDto';
 import { ErrorResponseDto } from './dto/ErrorRsponseDto';
 import { RoleGuard } from 'src/common/guards/roles.guard';
 import { UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Role } from 'src/common/enums/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 

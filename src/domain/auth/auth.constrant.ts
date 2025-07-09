@@ -1,4 +1,6 @@
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 export const jwtConstants = {
-  // accessSecret: 'mbnxvmznxbkjfhgfmbdcvxmnbkghdflghbvbvvcxmadfhgl',
   accessSecret: process.env.JWT_SECRET as string,
 };

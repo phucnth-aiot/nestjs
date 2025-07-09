@@ -10,7 +10,7 @@ import { JwtStrategy } from './jwt-auth/jwt-auth.strategy';
     UserModule,
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_ACCESS_SECRET,
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '15m' },
     }),
   ],

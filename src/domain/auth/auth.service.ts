@@ -39,7 +39,7 @@ export class AuthService {
 
     await this.userService.updateRefreshToken(user.userid, refresh_token);
 
-    return { access_token, refresh_token };
+    return { user_id: user.userid, access_token, refresh_token };
   }
 
   async register(dto: CreateUserDto) {
