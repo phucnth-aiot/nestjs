@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { ROLE_KEY } from '../decorators/roles.decorator';
 import { Role } from '../enums/role.enum';
 import { Request } from 'express';
-import { PayloadDto } from 'src/domain/auth/dto/payload.dto';
+import { JwtPayload } from 'src/domain/auth/dto/jwt-payload.interface';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -20,7 +20,7 @@ export class RoleGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
-    const user = request.user as PayloadDto;
+    const user = request.user as JwtPayload;
 
     if (!user) {
       throw new ForbiddenException('User not found');

@@ -24,7 +24,7 @@ import { Role } from 'src/common/enums/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
-@Controller('task')
+@Controller('tasks')
 export class TaskController {
   constructor(private readonly TasksService: TasksService) {}
 
@@ -37,10 +37,12 @@ export class TaskController {
   create(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
     return this.TasksService.create(createTaskDto);
   }
+
   @ApiOperation({ summary: 'Get All Task ' })
   @ApiResponse({ status: 201, type: TaskResponseDto })
   @ApiResponse({ status: 400, type: ErrorResponseDto })
   @Get()
+  @Roles(Role.Admin)
   findAll(@Query() filterTaskDto: FilterTaskDto) {
     return this.TasksService.findAll(filterTaskDto);
   }
@@ -66,13 +68,4 @@ export class TaskController {
   ) {
     return this.TasksService.uploadFile(id, file);
   }
-  //   @Post(':id/upload')
-  //   @UseInterceptors(FileInterceptor('file', multerConfig))
-  //   async uploadFile(
-  //   @Param('id') id: string,
-  //   @UploadedFile() file: Express.Multer.File
-  // ) {
-  //   const filepath = await this.TasksService.uploadFile(file);
-  //   return this.TasksService.updateTaskFile(id, filepath);
-  // }
 }

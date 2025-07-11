@@ -5,78 +5,180 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserService } from '../users/users.service';
+import { UserEntity } from '../users/entities/users.entity';
+import { RefreshToken } from './entities/refresh-token.entity';
 import { LoginDto } from './dto/login.dto';
+import { CreateUserDto } from '../users/dto/create-user.dtos';
 import { UserResponseDto } from './dto/user-response.dto';
-import { CreateUserDto } from '../users/dtos/create-user.dtos';
+import { JwtPayload } from './dto/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
+    @InjectRepository(RefreshToken)
+    private refreshTokenRepository: Repository<RefreshToken>,
     private jwtService: JwtService,
   ) {}
 
   async validateUser(loginDto: LoginDto): Promise<UserResponseDto> {
-    const user = await this.userService.findOne(loginDto.phone);
-    if (!user) throw new UnauthorizedException('user not found');
+    const user = await this.userRepository.findOne({ where: { phone: loginDto.phone } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
 
     const isMatch = await bcrypt.compare(loginDto.password, user.password);
-    if (!isMatch) throw new UnauthorizedException('inlavid password');
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid password');
+    }
 
-    return user as UserResponseDto;
+    return {
+      userid: user.userid,
+      username: user.username,
+      phone: user.phone,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
+    };
   }
 
-  async login(user: UserResponseDto) {
-    const payload = {
+  async login(loginDto: LoginDto) {
+    const user = await this.validateUser(loginDto);
+    const payload: JwtPayload = {
       sub: user.userid,
       username: user.username,
       role: user.role,
     };
-    const access_token = this.jwtService.sign(payload, { expiresIn: '15m' });
-    const refresh_token = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    await this.userService.updateRefreshToken(user.userid, refresh_token);
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_ACCESS_SECRET || 'access_secret',
+      expiresIn: '15m',
+    });
 
-    return { user_id: user.userid, access_token, refresh_token };
+    const refreshToken = await this.generateRefreshToken(user);
+
+    return {
+      user_id: user.userid,
+      access_token: accessToken,
+      refresh_token: refreshToken.token,
+      expires_in: 900, // 15 minutes
+    };
   }
 
   async register(dto: CreateUserDto) {
-    const existing = await this.userService.findOne(dto.phone);
-    if (existing) throw new ConflictException('Phone number already registered');
+    const existingUser = await this.userRepository.findOne({
+      where: [{ phone: dto.phone }, { email: dto.email }],
+    });
+    if (existingUser) {
+      throw new ConflictException('Phone number or email already registered');
+    }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    await this.userService.create({
+    const user = this.userRepository.create({
       ...dto,
       password: hashedPassword,
     });
-    return { message: 'Regiter succesfully' };
+
+    await this.userRepository.save(user);
+
+    return {
+      userid: user.userid,
+      username: user.username,
+      phone: user.phone,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
+    };
   }
 
-  async refreshToken(userid: string, refreshToken: string) {
-    const user = await this.userService.findById(userid);
-    if (!user || user.refreshToken !== refreshToken) {
+  async refreshToken(refreshToken: string) {
+    const tokenRecord = await this.refreshTokenRepository.findOne({
+      where: { token: refreshToken },
+      relations: ['user'],
+    });
+
+    if (!tokenRecord) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const payload = {
-      sub: user.userid,
-      username: user.username,
-      role: user.role,
-    };
-    const newAccessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-    return { access_token: newAccessToken };
+    if (tokenRecord.expiresAt < new Date()) {
+      await this.refreshTokenRepository.delete({ id: tokenRecord.id });
+      throw new UnauthorizedException('Refresh token has expired');
+    }
+
+    try {
+      const payload: JwtPayload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
+      });
+
+      const user = await this.userRepository.findOne({
+        where: { userid: payload.sub },
+      });
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      const newAccessToken = this.jwtService.sign(
+        { sub: user.userid, username: user.username, role: user.role },
+        { secret: process.env.JWT_ACCESS_SECRET || 'access_secret', expiresIn: '15m' },
+      );
+
+      const newRefreshToken = await this.generateRefreshToken({
+        userid: user.userid,
+        username: user.username,
+        phone: user.phone,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+      });
+
+      await this.refreshTokenRepository.delete({ id: tokenRecord.id });
+
+      return {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken.token,
+        expires_in: 900, // 15 minutes
+      };
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
-  async logout(userId: string): Promise<{ message: string }> {
-    const user = await this.userService.findById(userId);
+  async generateRefreshToken(user: UserResponseDto): Promise<RefreshToken> {
+    const payload: JwtPayload = { sub: user.userid, username: user.username, role: user.role };
+    const token = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
+      expiresIn: '7d',
+    });
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    const userEntity = await this.userRepository.findOne({ where: { userid: user.userid } });
+    if (!userEntity) {
+      throw new NotFoundException('User not found');
+    }
+
+    const refreshToken = this.refreshTokenRepository.create({
+      token,
+      user: userEntity,
+      expiresAt,
+    });
+
+    await this.refreshTokenRepository.save(refreshToken);
+    return refreshToken;
+  }
+
+  async logout(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { userid: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    user.refreshToken = '';
-    await this.userService.create(user);
 
-    return { message: 'Logout successful' };
+    await this.refreshTokenRepository.delete({ user: { userid: userId } });
   }
 }
