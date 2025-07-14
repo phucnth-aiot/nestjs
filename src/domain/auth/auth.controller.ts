@@ -1,10 +1,20 @@
-import { Controller, Post, Body, UseGuards, HttpStatus, HttpException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  HttpStatus,
+  HttpException,
+  Res,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../users/dto/create-user.dtos';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
+// import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Response, Request } from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -34,13 +44,34 @@ export class AuthController {
   @ApiOperation({ summary: 'Login user and return tokens' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     try {
       const result = await this.authService.login(loginDto);
+
+      // Set refresh token cookie (7 days)
+      res.cookie('refresh_token', result.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // Set access token cookie (15 mins)
+      res.cookie('access_token', result.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000, // 15 minutes
+      });
+
       return {
         statusCode: HttpStatus.OK,
         message: 'Login successful',
-        data: result,
+        data: {
+          user: result.user_info,
+          expires_in: result.expires_in / 60, // minutes
+          access_token: result.access_token,
+        },
       };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Invalid credentials';
@@ -52,13 +83,38 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     try {
-      const tokens = await this.authService.refreshToken(refreshTokenDto.refreshToken);
+      const refreshToken = (req.cookies as { refresh_token?: string })?.refresh_token;
+
+      if (!refreshToken) {
+        throw new HttpException('Refresh token not found', HttpStatus.UNAUTHORIZED);
+      }
+
+      const tokens = await this.authService.refreshToken(refreshToken);
+
+      // set new access token
+      res.cookie('access_token', tokens.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000, // 15 minutes
+      });
+
+      // update refresh_token cookie if rotated
+      res.cookie('refresh_token', tokens.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
       return {
         statusCode: HttpStatus.OK,
         message: 'Token refreshed successfully',
-        data: tokens,
+        data: {
+          expires_in: tokens.expires_in / 60,
+        },
       };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Invalid or expired refresh token';
@@ -71,9 +127,23 @@ export class AuthController {
   @ApiOperation({ summary: 'Logout user and invalidate refresh tokens' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async logout(@Body() body: { userId: string }) {
+  async logout(@Body() body: { userId: string }, @Res({ passthrough: true }) res: Response) {
     try {
       await this.authService.logout(body.userId);
+
+      // clear cookies
+      res.clearCookie('access_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
+
+      res.clearCookie('refresh_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
+
       return {
         statusCode: HttpStatus.OK,
         message: 'Logout successful',

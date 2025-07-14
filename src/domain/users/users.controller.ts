@@ -52,12 +52,12 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiBearerAuth()
-  async findOne(@Param('id') id: string, @Request() req: { user: JwtPayload }) {
+  async findOne(@Param('id') id: string) {
     try {
-      const userId = req.user.sub;
-      if (userId !== id && req.user.role !== Role.Admin) {
-        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-      }
+      // const userId = req.user.sub;
+      // if (userId !== id && req.user.role !== Role.Admin) {
+      //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+      // }
       const user = await this.userService.findById(id);
       return {
         statusCode: HttpStatus.OK,

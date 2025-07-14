@@ -46,29 +46,6 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto);
-    const payload: JwtPayload = {
-      sub: user.userid,
-      username: user.username,
-      role: user.role,
-    };
-
-    const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_ACCESS_SECRET || 'access_secret',
-      expiresIn: '15m',
-    });
-
-    const refreshToken = await this.generateRefreshToken(user);
-
-    return {
-      user_id: user.userid,
-      access_token: accessToken,
-      refresh_token: refreshToken.token,
-      expires_in: 900, // 15 minutes
-    };
-  }
-
   async register(dto: CreateUserDto) {
     const existingUser = await this.userRepository.findOne({
       where: [{ phone: dto.phone }, { email: dto.email }],
@@ -92,6 +69,29 @@ export class AuthService {
       email: user.email,
       role: user.role,
       avatarUrl: user.avatarUrl,
+    };
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.validateUser(loginDto);
+    const payload: JwtPayload = {
+      sub: user.userid,
+      username: user.username,
+      role: user.role,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_ACCESS_SECRET || 'access_secret',
+      expiresIn: '15m',
+    });
+
+    const refreshToken = await this.generateRefreshToken(user);
+
+    return {
+      user_info: user,
+      access_token: accessToken,
+      refresh_token: refreshToken.token,
+      expires_in: 900, // 15 minutes
     };
   }
 
