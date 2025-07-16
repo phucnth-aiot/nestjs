@@ -163,6 +163,13 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
+    const existingToken = await this.refreshTokenRepository.findOne({
+      where: { user: { userid: user.userid } },
+    });
+    if (existingToken) {
+      await this.refreshTokenRepository.delete({ user: { userid: user.userid } });
+    }
+
     const refreshToken = this.refreshTokenRepository.create({
       token,
       user: userEntity,
