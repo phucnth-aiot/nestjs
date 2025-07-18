@@ -50,7 +50,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    // Kiểm tra trùng phone hoặc email (nếu được cập nhật)
+    // validate phone and email uniqueness
     if (updateUserDto.phone || updateUserDto.email) {
       const existingUser = await this.userRepository.findOne({
         where: [
@@ -63,13 +63,43 @@ export class UserService {
       }
     }
 
-    // Hash password nếu được cung cấp
+    // Hash password if provided
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    // Cập nhật user
+    // update user fields
     Object.assign(user, updateUserDto);
+    await this.userRepository.save(user);
+
+    return {
+      userid: user.userid,
+      username: user.username,
+      phone: user.phone,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
+    };
+  }
+
+  async changePassword(
+    id: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<UserResponseDto> {
+    const user = await this.userRepository.findOne({ where: { userid: id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    //compare old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw new ConflictException('Old password is incorrect');
+    }
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
     await this.userRepository.save(user);
 
     return {

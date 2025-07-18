@@ -50,14 +50,14 @@ export class TasksService {
     }
   }
 
-  // tìm tất cả và phân trang
+  // findAll tasks with pagination and filtering
   async findAll(filterDto: FilterTaskDto) {
     const { status, title, page = '1', limit = '10' } = filterDto;
 
-    // Tạo cache key dựa trên filter
+    // create cache key based on filter parameters
     const cacheKey = `tasks:${JSON.stringify(filterDto)}`;
 
-    // Kiểm tra cache
+    // validate cache key
     const cached = await this.cacheManager.get(cacheKey);
     if (cached) {
       console.log('Lấy dữ liệu từ cache Redis', cached);

@@ -17,7 +17,8 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { Role } from '../../common/enums/role.enum';
 import { RoleGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { JwtPayload } from '../auth/dto/jwt-payload.interface';
+import { JwtPayload } from '../../common/share/jwt-payload.interface';
+import UserChangePasswordDto from './dto/user-change-password';
 
 @ApiTags('users')
 @Controller('users')
@@ -47,17 +48,13 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiBearerAuth()
+  @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
-      // const userId = req.user.sub;
-      // if (userId !== id && req.user.role !== Role.Admin) {
-      //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-      // }
       const user = await this.userService.findById(id);
       return {
         statusCode: HttpStatus.OK,
@@ -72,11 +69,11 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('me')
   @ApiOperation({ summary: 'Get current user info' })
   @ApiResponse({ status: 200, description: 'User info retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiBearerAuth()
+  @Get('me')
   async getMe(@Request() req: { user: JwtPayload }) {
     try {
       const user = await this.userService.findById(req.user.sub);
@@ -92,23 +89,16 @@ export class UserController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Update user by ID' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiBearerAuth()
-  async update(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
-    @Request() req: { user: JwtPayload },
-  ) {
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     try {
-      const userId = req.user.sub;
-      if (userId !== id && req.user.role !== Role.Admin) {
-        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-      }
       const user = await this.userService.update(id, updateUserDto);
       return {
         statusCode: HttpStatus.OK,
@@ -122,14 +112,37 @@ export class UserController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Update user by ID' })
+  @ApiResponse({ status: 200, description: 'User updated successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiBearerAuth()
+  @Patch('changePassword/:id')
+  async changePassword(@Param('id') id: string, @Body() body: UserChangePasswordDto) {
+    try {
+      const { oldPassword, newPassword } = body;
+      const user = await this.userService.changePassword(id, oldPassword, newPassword);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Change password successfully',
+        data: user,
+      };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to change password';
+      const status = error instanceof HttpException ? error.getStatus() : HttpStatus.BAD_REQUEST;
+      throw new HttpException(message, status);
+    }
+  }
+
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
-  @Delete(':id')
   @ApiOperation({ summary: 'Delete user by ID (Admin only)' })
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiBearerAuth()
+  @Delete(':id')
   async remove(@Param('id') id: string) {
     try {
       await this.userService.remove(id);

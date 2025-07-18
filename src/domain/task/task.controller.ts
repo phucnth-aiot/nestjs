@@ -29,38 +29,38 @@ export class TaskController {
   constructor(private readonly TasksService: TasksService) {}
 
   @ApiTags('tasks')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Create task' })
   @ApiResponse({ status: 201, type: TaskResponseDto })
   @ApiResponse({ status: 400, type: ErrorResponseDto })
   @Post()
-  @Roles(Role.Admin)
   create(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
     return this.TasksService.create(createTaskDto);
   }
 
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Get All Task ' })
   @ApiResponse({ status: 201, type: TaskResponseDto })
   @ApiResponse({ status: 400, type: ErrorResponseDto })
   @Get()
-  @Roles(Role.Admin)
   findAll(@Query() filterTaskDto: FilterTaskDto) {
     return this.TasksService.findAll(filterTaskDto);
   }
 
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Get Task By Id' })
   @ApiResponse({ status: 201, type: TaskResponseDto })
   @ApiResponse({ status: 400, type: ErrorResponseDto })
   @Get(':id')
-  @Roles(Role.Admin)
   findOne(@Param('id', ParseIntPipe) id: number): Promise<Task> {
     return this.TasksService.findOne(id);
   }
 
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'upload file' })
   @ApiResponse({ status: 201, type: TaskResponseDto })
   @ApiResponse({ status: 400, type: ErrorResponseDto })
   @Post(':id/upload')
-  @Roles(Role.Admin)
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Param('id', ParseIntPipe) id: number,

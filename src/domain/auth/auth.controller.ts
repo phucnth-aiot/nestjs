@@ -7,6 +7,7 @@ import {
   HttpException,
   Res,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -15,11 +16,15 @@ import { CreateUserDto } from '../users/dto/create-user.dtos';
 // import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Response, Request } from 'express';
+import { EmailVerificationService } from './email-verification.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private emailVerificationService: EmailVerificationService,
+  ) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -27,17 +32,35 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'Phone number or email already registered' })
   async register(@Body() dto: CreateUserDto) {
     try {
-      const user = await this.authService.register(dto);
+      const code = await this.emailVerificationService.generateCode(dto.email, dto.phone);
+      await this.emailVerificationService.sendCode(dto.email, code);
+      // const user = await this.authService.register(dto);
       return {
         statusCode: HttpStatus.CREATED,
-        message: 'User registered successfully',
-        data: user,
+        message: 'Verification code sent to email',
       };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Registration failed';
       const status = error instanceof HttpException ? error.getStatus() : HttpStatus.BAD_REQUEST;
       throw new HttpException(message, status);
     }
+  }
+
+  @Post('register/confirm')
+  async confirmRegister(@Body() dto: CreateUserDto & { code: string }) {
+    const isValid = this.emailVerificationService.validateCode(dto.email, dto.code);
+    if (!isValid) {
+      throw new BadRequestException('Invalid verification code');
+    }
+
+    const user = await this.authService.register(dto); // Lưu user vào DB
+    this.emailVerificationService.removeCode(dto.email);
+
+    return {
+      statusCode: 201,
+      message: 'User registered successfully',
+      data: user,
+    };
   }
 
   @Post('login')

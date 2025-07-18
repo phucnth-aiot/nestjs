@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,7 +8,7 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../users/dto/create-user.dtos';
 import { UserResponseDto } from './dto/user-response.dto';
-import { JwtPayload } from './dto/jwt-payload.interface';
+import { JwtPayload } from '../../common/share/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -47,13 +42,6 @@ export class AuthService {
   }
 
   async register(dto: CreateUserDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: [{ phone: dto.phone }, { email: dto.email }],
-    });
-    if (existingUser) {
-      throw new ConflictException('Phone number or email already registered');
-    }
-
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = this.userRepository.create({
       ...dto,

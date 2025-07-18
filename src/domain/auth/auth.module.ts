@@ -7,6 +7,7 @@ import { JwtStrategy } from './jwt-auth/jwt-auth.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { UserEntity } from '../users/entities/users.entity';
+import { EmailVerificationService } from './email-verification.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { UserEntity } from '../users/entities/users.entity';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, EmailVerificationService],
   exports: [AuthService],
 })
 export class AuthModule {}
