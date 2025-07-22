@@ -7,7 +7,7 @@ import { FilterTaskDto } from '../../common/dto/filter-task.dto';
 import { Express } from 'express';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { logger } from 'src/config/logger';
-import { FileService } from 'src/common/service/uploadFile';
+import { FileService } from 'src/common/service/uploadFile.service';
 
 @Injectable()
 export class TasksService {

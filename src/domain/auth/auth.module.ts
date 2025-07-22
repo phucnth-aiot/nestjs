@@ -8,10 +8,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { UserEntity } from '../users/entities/users.entity';
 import { EmailVerificationService } from './email-verification.service';
+import { AuditLogService } from '../auditLog/audit-log.service';
+import { AuditLogEntity } from '../auditLog/entities/audit-log.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, RefreshToken]),
+    TypeOrmModule.forFeature([UserEntity, RefreshToken, AuditLogEntity]),
     UserModule,
     JwtModule.register({
       global: true,
@@ -20,7 +22,7 @@ import { EmailVerificationService } from './email-verification.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, EmailVerificationService],
+  providers: [AuthService, JwtStrategy, EmailVerificationService, AuditLogService],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -7,6 +7,9 @@ import { typeOrmConfig } from './config/database.config';
 import { UserModule } from './domain/users/users.module';
 import { AuthModule } from './domain/auth/auth.module';
 import { TaskModule } from './domain/task/task.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { IpMiddleware } from './common/middleware/ip.middleware';
+import { AuditLogModule } from './domain/auditLog/audit-log.module';
 
 @Module({
   imports: [
@@ -26,12 +29,18 @@ import { TaskModule } from './domain/task/task.module';
           host: 'localhost',
           port: 6379,
         }),
-        ttl: 1800, // thời gian cache mặc định:30 p
+        ttl: 1800, // time default : 30m
       }),
     }),
+    ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
     TaskModule,
+    AuditLogModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(IpMiddleware).forRoutes('*'); // use for all route
+  }
+}

@@ -9,6 +9,9 @@ import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../users/dto/create-user.dtos';
 import { UserResponseDto } from './dto/user-response.dto';
 import { JwtPayload } from '../../common/share/jwt-payload.interface';
+import { AuditLogService } from '../auditLog/audit-log.service';
+import { Action } from 'src/common/enums/action.enum';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +21,7 @@ export class AuthService {
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private jwtService: JwtService,
+    private auditLogService: AuditLogService,
   ) {}
 
   async validateUser(loginDto: LoginDto): Promise<UserResponseDto> {
@@ -60,7 +64,7 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: LoginDto) {
+  async login(req: Request, loginDto: LoginDto) {
     const user = await this.validateUser(loginDto);
     const payload: JwtPayload = {
       sub: user.userid,
@@ -72,8 +76,20 @@ export class AuthService {
       secret: process.env.JWT_ACCESS_SECRET || 'access_secret',
       expiresIn: '15m',
     });
-
+    const ip =
+      (req as Request & { clientIp?: string }).clientIp === '::1'
+        ? '127.0.0.5'
+        : (req as Request & { clientIp?: string }).clientIp || 'Unknown';
     const refreshToken = await this.generateRefreshToken(user);
+    // log action login
+    await this.auditLogService.logAction({
+      userId: user.userid,
+      username: user.username,
+      action: Action.LOGIN,
+      entityName: 'UserEntity',
+      ipAddress: ip || 'Unknown',
+      createdAt: new Date(),
+    });
 
     return {
       user_info: user,

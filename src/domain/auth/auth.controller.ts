@@ -67,9 +67,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Login user and return tokens' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+  async login(
+    @Req() req: Request,
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     try {
-      const result = await this.authService.login(loginDto);
+      const result = await this.authService.login(req, loginDto);
 
       // Set refresh token cookie (7 days)
       res.cookie('refresh_token', result.refresh_token, {
